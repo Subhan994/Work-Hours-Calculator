@@ -4,53 +4,162 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Work Hours Calculator</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap">
   <style>
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      max-width: 600px;
-      margin: auto;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', sans-serif;
+      background-color: #f9fafb;
+      color: #111827;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
     }
-    label, input, button {
-      display: block;
-      margin-bottom: 10px;
+
+    h1 {
+      margin-top: 40px;
+      font-size: 2rem;
+      font-weight: 600;
+      text-align: center;
+    }
+
+    .container {
+      margin: 40px auto;
+      width: 90%;
+      max-width: 1000px;
+      background: white;
+      padding: 24px;
+      border-radius: 12px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-bottom: 24px;
+    }
+
+    th, td {
+      padding: 12px;
+      border-bottom: 1px solid #e5e7eb;
+      text-align: center;
+    }
+
+    th {
+      background-color: #f3f4f6;
+      font-weight: 600;
+    }
+
+    input[type="time"],
+    input[type="number"] {
+      padding: 6px 10px;
+      font-size: 0.9rem;
+      border: 1px solid #d1d5db;
+      border-radius: 6px;
+      width: 100px;
+    }
+
+    .results--wrapper {
+      text-align: center;
+      padding-top: 10px;
+    }
+
+    .subtotal {
+      font-size: 28px;
+      font-weight: bold;
+      color: #111827;
+    }
+
+    .small {
+      color: #6b7280;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
-  <h1>Work Hours Calculator</h1>
-  <label for="start">Start Time:</label>
-  <input type="time" id="start" />
+  <h1>Weekly Work Hours Calculator</h1>
 
-  <label for="end">End Time:</label>
-  <input type="time" id="end" />
+  <div class="container">
+    <table>
+      <thead>
+        <tr>
+          <th>Day</th>
+          <th>Start Time</th>
+          <th>End Time</th>
+          <th>Break (mins)</th>
+          <th>Total Hours</th>
+        </tr>
+      </thead>
+      <tbody id="workdays">
+        <!-- Rows added by JS -->
+      </tbody>
+    </table>
 
-  <label for="break">Break (minutes):</label>
-  <input type="number" id="break" value="0" />
-
-  <button onclick="calculate()">Calculate</button>
-
-  <h2>Total Hours Worked: <span id="result">0</span> hours</h2>
+    <div class="results--wrapper">
+      <p class="subtotal" id="weekly-total">0:00</p>
+      <p><strong>Hours worked</strong></p>
+      <p class="small">(per week)</p>
+    </div>
+  </div>
 
   <script>
-    function calculate() {
-      const start = document.getElementById('start').value;
-      const end = document.getElementById('end').value;
-      const breakMinutes = parseInt(document.getElementById('break').value) || 0;
+    const days = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
+    const tbody = document.getElementById("workdays");
 
-      if (!start || !end) {
-        alert('Please enter start and end time');
-        return;
-      }
+    days.forEach((day, index) => {
+      const row = document.createElement("tr");
+      row.classList.add("day", `day-${index + 1}`);
+      row.innerHTML = `
+        <td>${day}</td>
+        <td><input class="start" type="time" value="09:00" /></td>
+        <td><input class="end" type="time" value="17:30" /></td>
+        <td><input class="break" type="number" value="30" min="0" /></td>
+        <td class="total"><span>0:00</span></td>
+      `;
+      tbody.appendChild(row);
+    });
 
-      const startTime = new Date(`1970-01-01T${start}:00`);
-      const endTime = new Date(`1970-01-01T${end}:00`);
-      let diff = (endTime - startTime) / (1000 * 60); // in minutes
-      diff -= breakMinutes;
-      const totalHours = (diff / 60).toFixed(2);
+    function calculateTotalHours() {
+      const rows = document.querySelectorAll("tbody tr");
+      let totalMinutes = 0;
 
-      document.getElementById('result').textContent = totalHours;
+      rows.forEach(row => {
+        const start = row.querySelector(".start").value;
+        const end = row.querySelector(".end").value;
+        const breakMin = parseInt(row.querySelector(".break").value) || 0;
+
+        if (!start || !end) return;
+
+        const startTime = new Date(`1970-01-01T${start}:00`);
+        let endTime = new Date(`1970-01-01T${end}:00`);
+        if (endTime < startTime) {
+          endTime.setDate(endTime.getDate() + 1);
+        }
+
+        let diff = (endTime - startTime) / (1000 * 60); // in minutes
+        diff -= breakMin;
+        if (diff < 0) diff = 0;
+
+        const hours = Math.floor(diff / 60);
+        const minutes = Math.floor(diff % 60);
+
+        row.querySelector(".total span").textContent = `${hours}:${minutes.toString().padStart(2, '0')}`;
+        totalMinutes += diff;
+      });
+
+      const totalHours = Math.floor(totalMinutes / 60);
+      const totalMins = Math.floor(totalMinutes % 60);
+      document.getElementById("weekly-total").textContent = `${totalHours}:${totalMins.toString().padStart(2, '0')}`;
     }
+
+    window.addEventListener("DOMContentLoaded", () => {
+      document.querySelectorAll("input").forEach(input => {
+        input.addEventListener("input", calculateTotalHours);
+      });
+      calculateTotalHours();
+    });
   </script>
 </body>
 </html>
