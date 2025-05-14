@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Work Hours Calculator</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      max-width: 600px;
+      margin: auto;
+    }
+    label, input, button {
+      display: block;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Work Hours Calculator</h1>
+  <label for="start">Start Time:</label>
+  <input type="time" id="start" />
+
+  <label for="end">End Time:</label>
+  <input type="time" id="end" />
+
+  <label for="break">Break (minutes):</label>
+  <input type="number" id="break" value="0" />
+
+  <button onclick="calculate()">Calculate</button>
+
+  <h2>Total Hours Worked: <span id="result">0</span> hours</h2>
+
+  <script>
+    function calculate() {
+      const start = document.getElementById('start').value;
+      const end = document.getElementById('end').value;
+      const breakMinutes = parseInt(document.getElementById('break').value) || 0;
+
+      if (!start || !end) {
+        alert('Please enter start and end time');
+        return;
+      }
+
+      const startTime = new Date(`1970-01-01T${start}:00`);
+      const endTime = new Date(`1970-01-01T${end}:00`);
+      let diff = (endTime - startTime) / (1000 * 60); // in minutes
+      diff -= breakMinutes;
+      const totalHours = (diff / 60).toFixed(2);
+
+      document.getElementById('result').textContent = totalHours;
+    }
+  </script>
+</body>
+</html>
